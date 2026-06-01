@@ -30,6 +30,7 @@ tags:
   - name: Menu Management
   - name: Order Management
   - name: Rider
+  - name: Stores
 
 security:
   - ApiKeyAuth: []
@@ -431,9 +432,9 @@ paths:
 
   /your-server/location/status:
     post:
-      tags: [Menu Management]
+      tags: [Stores]
       operationId: locationStatus
-      summary: Location Status Update
+      summary: Store Toggle
       description: >
         **Outbound webhook — sent by UrbanPiper to your server.**
 
