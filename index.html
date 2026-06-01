@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+  <head>
+    <title>API Reference - Generic Ext Callbacks</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <!-- Load the Scalar runtime -->
+    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+
+    <script>
+      // Spec path is relative to this page: /scalar/index.html -> /openapi/ext-generic-v1.yaml
+      // Serve from the docs/ directory (see README), not from docs/scalar/.
+      Scalar.createApiReference('#app', {
+        url: '../openapi/ext-generic-v1.yaml',
+          hiddenClients: true,         // hide Client Libraries
+          hideDownloadButton: true,    // hide Download OpenAPI Document
+          mcp: null,                   // omit the mcp config entirely
+          agent: {                     // hide "Ask AI Agent"
+            disabled: true,
+          },
+          customCss: `
+              .introduction-section .section-columns {
+                  display: inline-block;
+              }
+              .scalar-mcp-layer { display: none !important; }`
+      })
+    </script>
+  </body>
+</html>

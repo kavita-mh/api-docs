@@ -1,0 +1,1263 @@
+openapi: 3.0.3
+info:
+  title: UrbanPiper APIs (v1)
+  version: 1.0.0
+  description: >
+    This documentation serves as a reference guide for integrating with UrbanPiper's upstream system. Our APIs follow REST (Representational State Transfer) principles and outline the endpoints that aggregator backend systems are expected to consume.
+
+    ### Before You Begin
+
+    Please keep the following in mind when working with this documentation:
+
+    - For any questions or clarifications, reach out to product@urbanpiper.com. If you have a shared Slack Connect channel with us, feel free to use that instead.
+
+    - We do our best to keep this documentation in sync with our development cycles; however, there may occasionally be gaps. If you notice anything missing or outdated, please don't hesitate to let us know.
+
+    - Required request parameters are indicated — omitting them will cause the request to fail. That said, optional parameters should not be overlooked, as they may affect the behavior of the response.
+
+    - During the testing phase, upstream partners should use the sandbox environment to validate functionality.
+
+    - All API requests must be made over HTTPS.
+
+    - In the event of an error, a maximum of 3 retry attempts are permitted per API request.
+
+    - Any third-party system consuming webhook data must respond within the defined timeout constraints outlined below.
+#servers:
+#  - url: https://integrations.urbanpiper.com
+#    description: Replace with your environment base URL.
+
+tags:
+  - name: Menu Management
+  - name: Order Management
+  - name: Rider
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /ext/api/v1/{upstream}/order/:
+    post:
+      tags: [Order Management]
+      operationId: createOrder
+      summary: Order Relay
+      parameters:
+        - name: upstream
+          in: path
+          required: true
+          description: upstream channel (e.g. `eazydiner`, `cari`)
+          schema:
+            type: string
+            enum:
+              - dotpe
+              - shouut
+              - eazydiner
+              - gupshup
+              - inresto
+              - peppo
+              - magicpin
+              - radyes
+              - noonfood
+              - cultfit
+              - eateasy
+              - thrive
+              - fidoo
+              - nextdoorhub
+              - mrsool
+              - droptheq
+              - rezoy
+              - tipplr
+              - hungerbox
+              - instashop
+              - masalabox
+              - kurvekiosk
+              - enqueue
+              - app4
+              - sticky
+              - bitsila
+              - uengage
+              - beanz
+              - dca
+              - konnectedtech
+              - ordable
+              - itcstore
+              - pumpkinkart
+              - labaiik
+              - easyfoods
+              - woweats
+              - yalah
+              - cari
+              - isthara
+              - keeta
+              - rafeeq
+              - greenreceipt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+            examples:
+              genericOrderExample:
+                summary: Example generic order relay
+                value:
+                  meta:
+                    order_no: "12345"
+                    location_ref_id: "1"
+                    current_status: placed
+                    fulfillment_mode: delivery
+                  payment:
+                    mode: online
+                    status: paid
+                    amount_paid: "212.61"
+                    amount_balance: ""
+                  customer:
+                    name: Jane Doe
+                    phone_number: "9123456789"
+                    email: jane@example.com
+                    address:
+                      line_1: "22-1, S S Jute Mill Rd"
+                      line_2: "Some area"
+                      landmark: ""
+                      city: Bangalore
+                      country: India
+                      pincode: "560003"
+                      instructions: ""
+                      latitude: 12.9304634
+                      longitude: 77.6330168
+                  items:
+                    - ref_id: "10001"
+                      title: "Pizza Margherita"
+                      price_per_unit: 100
+                      quantity: 2
+                      taxes: []
+                      charges: []
+                      discount: 0
+                      total: 200
+                      subtotal: 200
+                      variants: []
+                      addons: []
+                  discounts:
+                    - title: "Title 1"
+                      code: "super code"
+                      value: 10
+                      type: fixed
+                      rate: 0.3
+                      merchant_sponsored: true
+      responses:
+        '200':
+          description: Order processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+              examples:
+                ok:
+                  value:
+                    status: success
+                    message: Order processed
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /ext/api/v1/{upstream}/order/status/:
+    post:
+      tags: [Order Management]
+      operationId: updateOrderStatus
+      summary: Order Status Exchange
+      parameters:
+        - name: upstream
+          in: path
+          required: true
+          description: The upstream platform identifier
+          schema:
+            type: string
+            enum:
+              - dotpe
+              - shouut
+              - eazydiner
+              - gupshup
+              - inresto
+              - peppo
+              - magicpin
+              - radyes
+              - noonfood
+              - cultfit
+              - eateasy
+              - thrive
+              - fidoo
+              - nextdoorhub
+              - mrsool
+              - droptheq
+              - rezoy
+              - tipplr
+              - hungerbox
+              - instashop
+              - masalabox
+              - kurvekiosk
+              - enqueue
+              - app4
+              - sticky
+              - bitsila
+              - uengage
+              - beanz
+              - dca
+              - konnectedtech
+              - ordable
+              - itcstore
+              - pumpkinkart
+              - labaiik
+              - easyfoods
+              - woweats
+              - yalah
+              - cari
+              - isthara
+              - keeta
+              - rafeeq
+              - greenreceipt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderStatusUpdateRequest'
+            examples:
+              cancelledExample:
+                summary: Example cancellation status update
+                value:
+                  order_no: "4563829"
+                  new_status: cancelled
+                  reason: customer_cancelled
+      responses:
+        '200':
+          description: Status update processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+              examples:
+                ok:
+                  value:
+                    status: success
+                    message: order status update processed
+        '400':
+          description: Invalid payload or invalid status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /your-server/your-order-callback:
+    post:
+      tags: [Order Management]
+      operationId: orderCallback
+      summary: Order Callback
+      description: >
+        After UrbanPiper processes an order relay request, it sends this callback to the
+        endpoint provided by the upstream partner. The callback indicates whether the order
+        was successfully accepted or failed, along with the corresponding order identifier.
+
+
+        Your endpoint must respond with a `2xx` status within the defined timeout.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCallbackRequest'
+            examples:
+              successExample:
+                summary: Order processed successfully
+                value:
+                  status: success
+                  order_no: "Aggregator-order-Id"
+                  error: null
+              failureExample:
+                summary: Order processing failed
+                value:
+                  status: failure
+                  order_no: "Aggregator-order-Id"
+                  error: "Unable to locate store for given location_ref_id"
+      responses:
+        '200':
+          description: Callback acknowledged
+
+  /your-server/menu/upload:
+    post:
+      tags: [Menu Management]
+      operationId: menuUpload
+      summary: Menu Upload
+      description: >
+        UrbanPiper pushes the full catalogue to this endpoint whenever a menu sync is triggered.
+        The payload includes the store location, all categories and items, bill components (taxes
+        and charges), timing groups, and a `callback_url` your server must call once processing
+        is complete (see **Menu Publish Callback**).
+
+
+        Your endpoint must respond with a `2xx` status within the defined timeout.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuUploadRequest'
+            examples:
+              menuUploadExample:
+                summary: Example menu upload payload
+                value:
+                  location:
+                    ref_id: "42"
+                    min_delivery_time: "00:30"
+                    min_pickup_time: "00:15"
+                    timings: "7"
+                  menu:
+                    categories:
+                      - ref_id: "101"
+                        title: Burgers
+                        description: All our burgers
+                        sort_order: 1
+                        image_url: "https://cdn.example.com/burgers.jpg"
+                        timings: "7"
+                        subcategories: []
+                        items:
+                          - ref_id: "5001"
+                            merchant_ref_id: "SKU-001"
+                            canonical_id: "200"
+                            title: Classic Burger
+                            description: Sesame bun, beef patty, lettuce
+                            price: 199.0
+                            food_type: 2
+                            in_stock: true
+                            recommended: false
+                            sort_order: 1
+                            image_url: ""
+                            category_ref_id: "101"
+                            sub_category_ref_id: ""
+                            fulfillment_modes: [delivery, pickup]
+                            tags: []
+                            variant_groups: []
+                            add_on_groups:
+                              - ref_id: "301"
+                                title: Extra toppings
+                                minimum_needed: 0
+                                maximum_allowed: 3
+                                sort_order: 1
+                                addons:
+                                  - ref_id: "401"
+                                    merchant_ref_id: "OPT-001"
+                                    title: Extra Cheese
+                                    price: 20.0
+                                    food_type: 1
+                                    in_stock: true
+                                    sort_order: 1
+                                    image_url: ""
+                                    tags: []
+                                    nutritional_info: {}
+                                    translations: []
+                                translations: []
+                            bill_components:
+                              taxes: ["10"]
+                              charges: []
+                            discounts: []
+                            nutritional_info: {}
+                            translations: []
+                        translations: []
+                  bill_components:
+                    taxes:
+                      - ref_id: "10"
+                        title: GST
+                        description: Goods and Services Tax
+                        value: 5.0
+                    charges: []
+                  timings:
+                    - ref_id: "7"
+                      title: Weekday lunch
+                      days:
+                        - day: Monday
+                          slots:
+                            - start_time: "11:00"
+                              end_time: "15:00"
+                  order_bill_components: []
+                  callback_url: "https://integrations.urbanpiper.com/ext/api/v1/generic/menu/callback/abc123/"
+      responses:
+        '200':
+          description: Menu upload acknowledged
+
+  /your-server/item/inventory:
+    post:
+      tags: [Menu Management]
+      operationId: itemInventory
+      summary: Item Availability
+      description: >
+        UrbanPiper calls this endpoint to notify the upstream platform when item or
+        option stock status changes (e.g. item sold out, restocked). The payload
+        covers three entity types in a single call: `items` (top-level menu items),
+        `variants` (variant options), and `add_ons` (add-on options).
+
+
+        When `in_stock` is `false`, a `next_available_at` timestamp is also included
+        indicating when the item is expected to be back in stock.
+
+
+        Your endpoint must respond with a `2xx` status within the defined timeout.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemInventoryRequest'
+            examples:
+              itemStockOut:
+                summary: Mark items as out of stock
+                value:
+                  location_ref_id: "42"
+                  in_stock: false
+                  items: ["5001", "5002"]
+                  variants: []
+                  add_ons: []
+                  next_available_at: 1780000000
+              optionStockIn:
+                summary: Mark add-on options back in stock
+                value:
+                  location_ref_id: "42"
+                  in_stock: true
+                  items: []
+                  variants: []
+                  add_ons: ["401", "402"]
+      responses:
+        '200':
+          description: Inventory update acknowledged
+
+  /your-server/location/status:
+    post:
+      tags: [Menu Management]
+      operationId: locationStatus
+      summary: Location Status Update
+      description: >
+        **Outbound webhook — sent by UrbanPiper to your server.**
+
+
+        UrbanPiper calls this endpoint to notify the upstream platform when a store
+        is toggled on or off (e.g. temporarily closed, reopened).
+
+
+        Your endpoint must respond with a `2xx` status within the defined timeout.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationStatusRequest'
+            examples:
+              storeDisabled:
+                summary: Store turned off
+                value:
+                  location_ref_id: "42"
+                  ordering_enabled: false
+              storeEnabled:
+                summary: Store turned back on
+                value:
+                  location_ref_id: "42"
+                  ordering_enabled: true
+      responses:
+        '200':
+          description: Location status update acknowledged
+
+  /ext/api/v1/generic/{platform}/rider-status/:
+    post:
+      tags: [Rider]
+      operationId: updateRiderStatus
+      summary: Rider status update
+      description: >
+        API to update the rider status
+
+        Once the delivery partner is assigned to an order, then the aggregator system can use this endpoint to share order delivery status in the below format.
+      parameters:
+        - name: platform
+          in: path
+          required: true
+          description: >
+            Delivery platform identifier. This endpoint expects one of the upstream channel names.
+          schema:
+            type: string
+            enum:
+              - dash
+              - pos
+              - dotpe
+              - shouut
+              - eazydiner
+              - gupshup
+              - inresto
+              - peppo
+              - magicpin
+              - radyes
+              - noonfood
+              - cultfit
+              - eateasy
+              - thrive
+              - fidoo
+              - nextdoorhub
+              - mrsool
+              - droptheq
+              - rezoy
+              - tipplr
+              - hungerbox
+              - instashop
+              - masalabox
+              - kurvekiosk
+              - enqueue
+              - app4
+              - sticky
+              - bitsila
+              - uengage
+              - beanz
+              - dca
+              - konnectedtech
+              - ordable
+              - itcstore
+              - pumpkinkart
+              - labaiik
+              - easyfoods
+              - woweats
+              - yalah
+              - cari
+              - isthara
+              - keeta
+              - rafeeq
+              - greenreceipt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RiderStatusRequest'
+            examples:
+              assignedGenericExample:
+                summary: Example rider status from an upstream platform
+                value:
+                  platform_order_id: "UP-ORDER-1001"
+                  status: ASSIGNED
+                  rider_data:
+                    rider_name: Ravi
+                    rider_phone_number: "9999999999"
+                    rider_alt_phone_number: ""
+                    delivery_channel: "optional-for-dash"
+      responses:
+        '200':
+          description: Rider status update processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+        '400':
+          description: Invalid payload or status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /ext/api/v1/generic/menu/callback/{request_id}/:
+    post:
+      tags: [Menu Management]
+      operationId: menuCallback
+      summary: Menu publish callback
+      parameters:
+        - name: request_id
+          in: path
+          required: true
+          description: Callback request id
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuCallbackRequest'
+            examples:
+              menuCallbackExample:
+                summary: Example menu callback
+                value:
+                  success: true
+                  error_msgs: []
+                  data:
+                    someKey: someValue
+      responses:
+        '200':
+          description: Menu callback processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+        '400':
+          description: Invalid payload format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+components:
+#  securitySchemes:
+#    ApiKeyAuth:
+#      type: apiKey
+#      in: header
+#      name: Authorization
+#      description: >
+#        Format: `apikey {username}:{api_key}`.
+  schemas:
+    ApiSuccessResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [success]
+        message:
+          type: string
+      additionalProperties: true
+    ApiErrorResponse:
+      type: object
+      required: [status, message]
+      properties:
+        status:
+          type: string
+          enum: [error]
+        message:
+          type: string
+        err_code:
+          type: string
+      additionalProperties: true
+
+    LocationStatusRequest:
+      type: object
+      required: [location_ref_id, ordering_enabled]
+      properties:
+        location_ref_id:
+          type: string
+          description: UrbanPiper's store/location identifier.
+        ordering_enabled:
+          type: boolean
+          description: "`true` when the store is open for orders, `false` when closed."
+
+    ItemInventoryRequest:
+      type: object
+      required: [location_ref_id, in_stock, items, variants, add_ons]
+      properties:
+        location_ref_id:
+          type: string
+          description: UrbanPiper's store/location identifier.
+        in_stock:
+          type: boolean
+          description: "`true` to mark entities as available, `false` to mark them as out of stock."
+        items:
+          type: array
+          description: >
+            Ref IDs of top-level menu items whose stock status is changing.
+            Also includes items whose last active variant is being stocked out.
+          items:
+            type: string
+        variants:
+          type: array
+          description: Ref IDs of variant options whose stock status is changing.
+          items:
+            type: string
+        add_ons:
+          type: array
+          description: Ref IDs of add-on options whose stock status is changing.
+          items:
+            type: string
+        next_available_at:
+          type: integer
+          description: >
+            Unix timestamp (seconds) indicating when the entities are expected back in stock.
+            Only present when `in_stock` is `false`.
+          example: 1780000000
+
+    MenuUploadRequest:
+      type: object
+      required: [location, callback_url]
+      properties:
+        location:
+          type: object
+          required: [ref_id]
+          properties:
+            ref_id:
+              type: string
+              description: UrbanPiper's store/location identifier.
+            min_delivery_time:
+              type: string
+              description: Minimum delivery time in `HH:MM` format.
+              example: "00:30"
+            min_pickup_time:
+              type: string
+              description: Minimum pickup time in `HH:MM` format.
+              example: "00:15"
+            timings:
+              type: string
+              description: Ref ID of the timing group applicable to this location, or empty string.
+        menu:
+          type: object
+          properties:
+            categories:
+              type: array
+              items:
+                $ref: '#/components/schemas/MenuCategory'
+        bill_components:
+          $ref: '#/components/schemas/BillComponents'
+        timings:
+          type: array
+          description: Timing groups referenced by categories or the location.
+          items:
+            $ref: '#/components/schemas/TimingsGroup'
+        order_bill_components:
+          type: array
+          description: Order-level charges (e.g. delivery fee, packaging).
+          items:
+            type: object
+            additionalProperties: true
+        callback_url:
+          type: string
+          description: >
+            URL your server must POST to once the menu has been processed
+            (see **Menu Publish Callback**).
+          example: "https://integrations.urbanpiper.com/ext/api/v1/generic/menu/callback/{request_id}/"
+
+    MenuCategory:
+      type: object
+      properties:
+        ref_id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        sort_order:
+          type: integer
+        image_url:
+          type: string
+        timings:
+          type: string
+          description: Ref ID of an applicable timing group, or empty string.
+        subcategories:
+          type: array
+          description: Sub-categories (present only on top-level categories).
+          items:
+            $ref: '#/components/schemas/MenuCategory'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MenuItem'
+        translations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Translation'
+
+    MenuItem:
+      type: object
+      properties:
+        ref_id:
+          type: string
+          description: Platform-level item ID (ILPA ID).
+        merchant_ref_id:
+          type: string
+          description: Merchant's own SKU/reference ID.
+        canonical_id:
+          type: string
+          description: UrbanPiper's internal item ID.
+        title:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        food_type:
+          type: integer
+          description: "`1` = veg, `2` = non-veg, `4` = N/A."
+          enum: [1, 2, 4]
+        in_stock:
+          type: boolean
+        recommended:
+          type: boolean
+        sort_order:
+          type: integer
+        image_url:
+          type: string
+        category_ref_id:
+          type: string
+        sub_category_ref_id:
+          type: string
+          description: Empty string if item is in a top-level category.
+        fulfillment_modes:
+          type: array
+          items:
+            type: string
+            enum: [delivery, pickup, dinein]
+        tags:
+          type: array
+          items:
+            type: string
+        variant_groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/VariantGroup'
+        add_on_groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddOnGroup'
+        bill_components:
+          type: object
+          properties:
+            taxes:
+              type: array
+              items:
+                type: string
+              description: Ref IDs of applicable taxes from the top-level `bill_components.taxes`.
+            charges:
+              type: array
+              items:
+                type: string
+              description: Ref IDs of applicable charges from the top-level `bill_components.charges`.
+        discounts:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        nutritional_info:
+          type: object
+          additionalProperties: true
+        translations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Translation'
+
+    VariantGroup:
+      type: object
+      properties:
+        ref_id:
+          type: string
+        title:
+          type: string
+        sort_order:
+          type: integer
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemOption'
+        translations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Translation'
+
+    AddOnGroup:
+      type: object
+      properties:
+        ref_id:
+          type: string
+        title:
+          type: string
+        minimum_needed:
+          type: integer
+        maximum_allowed:
+          type: integer
+        sort_order:
+          type: integer
+        addons:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemOption'
+        translations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Translation'
+
+    ItemOption:
+      type: object
+      properties:
+        ref_id:
+          type: string
+        merchant_ref_id:
+          type: string
+        title:
+          type: string
+        price:
+          type: number
+        food_type:
+          type: integer
+          enum: [1, 2, 4]
+        in_stock:
+          type: boolean
+        sort_order:
+          type: integer
+        image_url:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        nutritional_info:
+          type: object
+          additionalProperties: true
+        translations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Translation'
+
+    BillComponents:
+      type: object
+      properties:
+        taxes:
+          type: array
+          items:
+            type: object
+            properties:
+              ref_id:
+                type: string
+              title:
+                type: string
+              description:
+                type: string
+              value:
+                type: number
+                description: Percentage value (e.g. `5.0` for 5%).
+        charges:
+          type: array
+          items:
+            type: object
+            properties:
+              ref_id:
+                type: string
+              title:
+                type: string
+              description:
+                type: string
+              value:
+                type: number
+              type:
+                type: string
+                enum: [FIXED, PERCENTAGE]
+              fulfillment_modes:
+                type: array
+                items:
+                  type: string
+              taxes:
+                type: array
+                items:
+                  type: string
+                description: Ref IDs of taxes applicable to this charge.
+
+    TimingsGroup:
+      type: object
+      properties:
+        ref_id:
+          type: string
+        title:
+          type: string
+        days:
+          type: array
+          items:
+            type: object
+            properties:
+              day:
+                type: string
+                enum: [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
+              slots:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    start_time:
+                      type: string
+                      example: "11:00"
+                    end_time:
+                      type: string
+                      example: "15:00"
+
+    Translation:
+      type: object
+      properties:
+        language:
+          type: string
+          description: Language code (e.g. `ar`, `fr`, `zh_cn`).
+          example: ar
+        title:
+          type: string
+        description:
+          type: string
+
+    OrderCallbackRequest:
+      type: object
+      required: [status, order_no]
+      properties:
+        status:
+          type: string
+          enum: [success, failure]
+          description: Indicates whether the order was successfully processed.
+        order_no:
+          type: string
+          description: The upstream platform's order identifier (as sent in `meta.order_no`).
+        error:
+          type: string
+          nullable: true
+          description: Error message if `status` is `failure`, otherwise `null`.
+
+    OrderRequest:
+      type: object
+      required: [meta, payment, customer, items]
+      properties:
+        meta:
+          $ref: '#/components/schemas/OrderMeta'
+        payment:
+          $ref: '#/components/schemas/Payment'
+        customer:
+          $ref: '#/components/schemas/Customer'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        discounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Discount'
+      additionalProperties: true
+
+    OrderMeta:
+      type: object
+      properties:
+        order_no:
+          type: string
+          description: Upstream order number
+        sub_order_no:
+          type: string
+        restaurant_name:
+          type: string
+        location_ref_id:
+          type: string
+        current_status:
+          type: string
+        fulfillment_mode:
+          type: string
+        table_number:
+          type: string
+        total:
+          type: number
+        sub_total:
+          type: number
+        created:
+          type: integer
+        instructions:
+          type: string
+        charges:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      additionalProperties: true
+
+    Payment:
+      type: object
+      properties:
+        mode:
+          type: string
+        status:
+          type: string
+        amount_paid:
+          type: string
+        amount_balance:
+          type: string
+      additionalProperties: true
+
+    Customer:
+      type: object
+      required: [name, phone_number, email, address]
+      properties:
+        name:
+          type: string
+        phone_number:
+          type: string
+        email:
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+      additionalProperties: true
+
+    Address:
+      type: object
+      properties:
+        line_1:
+          type: string
+        line_2:
+          type: string
+        landmark:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+        pincode:
+          type: string
+        instructions:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+      additionalProperties: true
+
+    OrderItem:
+      type: object
+      required: [ref_id, title, price_per_unit, quantity, taxes, charges, discount, total, subtotal, variants, addons]
+      properties:
+        ref_id:
+          type: string
+        title:
+          type: string
+        price_per_unit:
+          type: number
+        quantity:
+          type: integer
+        taxes:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        charges:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        discount:
+          type: number
+        total:
+          type: number
+        subtotal:
+          type: number
+        variants:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        addons:
+          type: array
+          items:
+            type: object
+            required: [ref_id, price_per_unit]
+            properties:
+              ref_id:
+                type: string
+              price_per_unit:
+                type: number
+            additionalProperties: true
+      additionalProperties: true
+
+    Discount:
+      type: object
+      properties:
+        title:
+          type: string
+        code:
+          type: string
+        value:
+          type: number
+        type:
+          type: string
+          description: e.g. `fixed`
+        rate:
+          type: number
+        merchant_sponsored:
+          type: boolean
+      additionalProperties: true
+
+    OrderStatusUpdateRequest:
+      type: object
+      required: [order_no, new_status]
+      properties:
+        order_no:
+          type: string
+          description: Platform order id as sent in `meta.order_no`
+        new_status:
+          type: string
+          enum: [dispatched, completed, cancelled]
+        reason:
+          type: string
+          description: Required when `new_status` is `cancelled` (cancellation reason)
+      additionalProperties: true
+
+    RiderStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        platform_order_id:
+          type: string
+          description: Required for non-`dash` and non-`pos` platforms (Generic upstream)
+        order_id:
+          type: integer
+          description: Optional for legacy Dash/POS payloads (if provided)
+        status:
+          type: string
+          enum:
+            - INITIALISED
+            - UNASSIGNED
+            - ASSIGNED
+            - RE-ASSIGNED
+            - AT-STORE
+            - OUT-FOR-DELIVERY
+            - DELIVERED
+            - CANCELLED
+            - NO-RIDER-FOUND
+            - ADDITIONAL-RIDER
+            - RETURN-START
+            - RETURN-COMPLETED
+            - RETURN-FAILED
+            - RIDER-REACHED
+        rider_data:
+          $ref: '#/components/schemas/RiderData'
+      additionalProperties: true
+
+    RiderData:
+      type: object
+      required: [rider_phone_number]
+      properties:
+        rider_name:
+          type: string
+        rider_phone_number:
+          type: string
+        rider_alt_phone_number:
+          type: string
+        delivery_channel:
+          type: string
+          description: Only relevant for `dash` payloads (for non-`dash`, UrbanPiper derives from platform)
+      additionalProperties: true
+
+    RiderLocationRequest:
+      type: object
+      required: [order_id, location]
+      properties:
+        order_id:
+          type: string
+        location:
+          type: object
+          required: [latitude, longitude]
+          properties:
+            latitude:
+              type: number
+            longitude:
+              type: number
+          additionalProperties: true
+      additionalProperties: true
+
+    MenuCallbackRequest:
+      type: object
+      properties:
+        success:
+          type: boolean
+        error_msgs:
+          type: array
+          items:
+            type: string
+            nullable: true
+        data:
+          type: object
+          additionalProperties: true
+      additionalProperties: true
+
